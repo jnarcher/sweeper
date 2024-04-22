@@ -224,6 +224,12 @@ func recursiveReveal(board *Board, focus int) {
 	}
 }
 
+func (board *Board) RevealAll() {
+    for i := range board.Revealed {
+        board.Revealed[i] = true
+    }
+}
+
 func (board *Board) HideSquare(index int) {
 	board.Revealed[index] = false
 }
@@ -231,7 +237,7 @@ func (board *Board) HideSquare(index int) {
 func (board Board) RenderSquare(index int) string {
 	if board.Revealed[index] {
 		if board.IsBomb(index) {
-			return "X"
+			return "✖"
 		} else if board.Squares[index] == 0 {
 			return " "
 		}
@@ -242,7 +248,7 @@ func (board Board) RenderSquare(index int) string {
 		return "F"
 	}
 
-	return "◙"
+	return "▢"
 }
 
 func setSquares(bombs []int, width, height int) []int {
