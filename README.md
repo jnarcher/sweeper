@@ -2,6 +2,8 @@
 
 Play Minesweeper inside your terminal.
 
+[screenshot](github/screenshot.png)
+
 ## Getting Started
 
 ### Dependencies
