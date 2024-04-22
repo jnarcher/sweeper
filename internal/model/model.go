@@ -87,6 +87,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			if isBomb {
 				m.SetState(Lost)
+                m.board.RevealAll()
 				return m, nil
 			}
 
@@ -95,6 +96,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.board.ToggleFlag(m.cursor)
 			if m.CheckWin() {
 				m.SetState(Win)
+                m.board.RevealAll()
 			}
 			return m, nil
 		}
@@ -116,11 +118,16 @@ func (m Model) View() string {
 				board += " "
 			}
 
-			var style lipgloss.Style
+            style := lipgloss.NewStyle()
 			if index == m.cursor {
 				style = theme.CursorText
 			} else if m.board.Revealed[index] {
-				style = theme.DefaultText.Foreground(m.colors[m.board.Squares[index]])
+
+                if m.board.IsBomb(index) {
+                    style = theme.DefaultText.Foreground(lipgloss.Color("#FF00000"))
+                } else {
+                    style = theme.DefaultText.Foreground(m.colors[m.board.Squares[index]])
+                }
 			}
 
 			board += style.Render(m.board.RenderSquare(index))
