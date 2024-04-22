@@ -2,7 +2,7 @@
 
 Play Minesweeper inside your terminal.
 
-[screenshot](github/screenshot.png)
+![screenshot](github/screenshot.png)
 
 ## Getting Started
 
@@ -30,6 +30,12 @@ The following flags can be set to configure the board:
 - `b` : number of bombs
 
 If no value for the number of bombs is provided, the program will default to 1/6th of the total squares available.
+
+Example:
+```bash
+./sweeper -w 20 -h 20 -b 50
+```
+This will create a minesweeper game in a grid of 20 columns by 20 rows with 50 bombs.
 
 ## Acknowledgments
 
