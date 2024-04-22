@@ -195,12 +195,28 @@ func (board *Board) SetFlag(index int) {
 // / Sets a square to revealed as well as expands te revealed area to show irrelevant squares.
 // / Returns whether the revealed square was a bomb.
 func (board *Board) RevealSquare(index int) bool {
-	board.Revealed[index] = true
+
 	if board.IsBomb(index) {
+        board.Revealed[index] = true
 		return true
 	}
-	recursiveReveal(board, index)
-	return false
+
+    // If selected an already revealed square reveal all non flagged surrounding squares
+    if board.Revealed[index] && board.Squares[index] > 0 {
+        neighbors := board.getUnrevealedNeighbors(index)
+        for _, neighbor := range neighbors {
+            if !board.IsFlagged(neighbor) {
+                if board.IsBomb(neighbor) {
+                    return true
+                }
+                recursiveReveal(board, neighbor)
+            }
+        }
+        return false
+    }
+
+    recursiveReveal(board, index)
+    return false
 }
 
 func recursiveReveal(board *Board, focus int) {
@@ -211,6 +227,13 @@ func recursiveReveal(board *Board, focus int) {
 		return
 	}
 
+	unrevealedNeighbors := board.getUnrevealedNeighbors(focus)
+	for i := 0; i < len(unrevealedNeighbors); i++ {
+		recursiveReveal(board, unrevealedNeighbors[i])
+	}
+}
+
+func (board Board) getUnrevealedNeighbors(focus int) []int {
 	unrevealedNeighbors := []int{}
 	neighbors := getSurroundingIndices(focus, board.Width, board.Height)
 	for i := 0; i < len(neighbors); i++ {
@@ -218,10 +241,7 @@ func recursiveReveal(board *Board, focus int) {
 			unrevealedNeighbors = append(unrevealedNeighbors, neighbors[i])
 		}
 	}
-
-	for i := 0; i < len(unrevealedNeighbors); i++ {
-		recursiveReveal(board, unrevealedNeighbors[i])
-	}
+    return unrevealedNeighbors
 }
 
 func (board *Board) RevealAll() {
