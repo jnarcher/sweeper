@@ -2,18 +2,24 @@ package main
 
 import (
 	"fmt"
+	"os"
+
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/jnarcher/sweeper/internal/board"
+	"github.com/jnarcher/sweeper/internal/model"
 )
 
 func main() {
-    bd := board.NewBoard(5, 5, 5)
-    fmt.Println(bd.ToStringRevealed())
-    fmt.Println(bd.ToString())
 
-    died := bd.RevealSquare(0)
-    if died {
-        fmt.Println("Bomb revealed")
-    }
+	config := board.BoardConfig{
+		Width:  50,
+		Height: 40,
+		Bombs:  200,
+	}
 
-    fmt.Println(bd.ToString())
+	p := tea.NewProgram(model.InitialModel(config), tea.WithAltScreen())
+	if _, err := p.Run(); err != nil {
+		fmt.Printf("Error: %v", err)
+		os.Exit(1)
+	}
 }

@@ -11,40 +11,46 @@ type Board struct {
 	Bombs    []int
 	Squares  []int
 	Revealed []bool
-    Flagged  []int
+	Flagged  []int
 }
 
-func NewBoard(width, height, bombCount int) Board {
-	if bombCount > width*height {
+type BoardConfig struct {
+	Width  int
+	Height int
+	Bombs  int
+}
+
+func NewBoard(config BoardConfig) Board {
+	if config.Bombs > config.Width*config.Height {
 		panic("bomb count cannot be greater than board size")
 	}
 
-	bombs := setBombs(bombCount, width, height)
-	squares := setSquares(bombs, width, height)
+	bombs := setBombs(config)
+	squares := setSquares(bombs, config.Width, config.Height)
 
-	revealed := make([]bool, width*height)
-    flagged := []int{}
+	revealed := make([]bool, config.Width*config.Height)
+	flagged := []int{}
 
 	return Board{
-		width,
-		height,
+		config.Width,
+		config.Height,
 		bombs,
 		squares,
 		revealed,
-        flagged,
+		flagged,
 	}
 }
 
-func setBombs(count, width, height int) []int {
+func setBombs(config BoardConfig) []int {
 	bombs := []int{}
 
 	// randomly place bombs
-	bombOptions := make([]int, width*height)
+	bombOptions := make([]int, config.Width*config.Height)
 	for i := 0; i < len(bombOptions); i++ {
 		bombOptions[i] = i
 	}
 
-	for ; count > 0; count-- {
+	for ; config.Bombs > 0; config.Bombs-- {
 		optionIndex := rand.Intn(len(bombOptions))
 		newBomb := bombOptions[optionIndex]
 		bombOptions = append(bombOptions[:optionIndex], bombOptions[optionIndex+1:]...)
@@ -73,12 +79,12 @@ func setBombs(count, width, height int) []int {
 }
 
 // / Returns a string visualization of the board
-func (board Board) ToString() string {
-    return boardToString(board, false)
+func (board Board) String() string {
+	return boardToString(board, false)
 }
 
-func (board Board) ToStringRevealed() string {
-    return boardToString(board, true)
+func (board Board) StringRevealed() string {
+	return boardToString(board, true)
 }
 
 func boardToString(board Board, showUnrevealed bool) string {
@@ -93,17 +99,17 @@ func boardToString(board Board, showUnrevealed bool) string {
 			}
 
 			charToAdd := ""
-            if board.Revealed[index] || showUnrevealed {
-                if board.IsBomb(index) {
-                    charToAdd = "X"
-                } else {
-                    charToAdd = fmt.Sprint(board.Squares[index])
-                }
-            } else if board.IsFlagged(index) {
-                charToAdd = "F"
-            } else {
-                charToAdd = "-"
-            }
+			if board.Revealed[index] || showUnrevealed {
+				if board.IsBomb(index) {
+					charToAdd = "X"
+				} else {
+					charToAdd = fmt.Sprint(board.Squares[index])
+				}
+			} else if board.IsFlagged(index) {
+				charToAdd = "F"
+			} else {
+				charToAdd = "-"
+			}
 
 			s += charToAdd
 		}
@@ -140,6 +146,19 @@ func (board Board) IsBomb(index int) bool {
 	return false
 }
 
+func (board *Board) ToggleFlag(index int) {
+	if board.IsFlagged(index) {
+		for i := 0; i < len(board.Flagged); i++ {
+			if board.Flagged[i] == index {
+				board.Flagged = append(board.Flagged[:i], board.Flagged[i+1:]...)
+				break
+			}
+		}
+	} else {
+		board.SetFlag(index)
+	}
+}
+
 func (board Board) IsFlagged(index int) bool {
 	for i := 0; i < len(board.Flagged); i++ {
 		if board.Flagged[i] == index {
@@ -150,10 +169,8 @@ func (board Board) IsFlagged(index int) bool {
 }
 
 func (board *Board) SetFlag(index int) {
-    if !board.IsFlagged(index) {
-        board.Flagged = append(board.Flagged, index)
-
-        didInsert := false
+	if !board.IsFlagged(index) {
+		didInsert := false
 		for i := 0; i < len(board.Flagged); i++ {
 			if index < board.Flagged[i] {
 
@@ -172,43 +189,60 @@ func (board *Board) SetFlag(index int) {
 		if !didInsert {
 			board.Flagged = append(board.Flagged, index)
 		}
-    }
+	}
 }
 
-/// Sets a square to revealed as well as expands te revealed area to show irrelevant squares.
-/// Returns whether the revealed square was a bomb.
+// / Sets a square to revealed as well as expands te revealed area to show irrelevant squares.
+// / Returns whether the revealed square was a bomb.
 func (board *Board) RevealSquare(index int) bool {
-    board.Revealed[index] = true
-    if board.IsBomb(index) {
-        return true
-    }
-    recursiveReveal(board, index)
-    return false
+	board.Revealed[index] = true
+	if board.IsBomb(index) {
+		return true
+	}
+	recursiveReveal(board, index)
+	return false
 }
 
 func recursiveReveal(board *Board, focus int) {
-    board.Revealed[focus] = true
+	board.Revealed[focus] = true
 
-    // stop if square has a neighboring bomb
-    if board.Squares[focus] != 0 {
-        return
-    }
+	// stop if square has a neighboring bomb
+	if board.Squares[focus] != 0 {
+		return
+	}
 
-    unrevealedNeighbors := []int{}
-    neighbors := getSurroundingIndices(focus, board.Width, board.Height)
-    for i := 0; i < len(neighbors); i++ {
-        if !board.Revealed[neighbors[i]] && !board.IsFlagged(neighbors[i]) {
-            unrevealedNeighbors = append(unrevealedNeighbors, neighbors[i])
-        }
-    }
+	unrevealedNeighbors := []int{}
+	neighbors := getSurroundingIndices(focus, board.Width, board.Height)
+	for i := 0; i < len(neighbors); i++ {
+		if !board.Revealed[neighbors[i]] && !board.IsFlagged(neighbors[i]) {
+			unrevealedNeighbors = append(unrevealedNeighbors, neighbors[i])
+		}
+	}
 
-    for i := 0; i < len(unrevealedNeighbors); i++ {
-        recursiveReveal(board, unrevealedNeighbors[i])
-    }
+	for i := 0; i < len(unrevealedNeighbors); i++ {
+		recursiveReveal(board, unrevealedNeighbors[i])
+	}
 }
 
 func (board *Board) HideSquare(index int) {
-    board.Revealed[index] = false
+	board.Revealed[index] = false
+}
+
+func (board Board) RenderSquare(index int) string {
+	if board.Revealed[index] {
+		if board.IsBomb(index) {
+			return "X"
+		} else if board.Squares[index] == 0 {
+			return " "
+		}
+		return fmt.Sprint(board.Squares[index])
+	}
+
+	if board.IsFlagged(index) {
+		return "F"
+	}
+
+	return "◙"
 }
 
 func setSquares(bombs []int, width, height int) []int {
