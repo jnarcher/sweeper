@@ -37,6 +37,13 @@ Example:
 ```
 This will create a minesweeper game in a grid of 20 columns by 20 rows with 50 bombs.
 
-## Acknowledgments
+### Controls
 
-* [bubbletea](https://github.com/charmbracelet/bubbletea/tree/master)
+To move the cursor around the grid you can use the following options for up, left, down, and right respectively:
+- `w, a, s, d`
+- `h, j, k, l`
+- arrow keys
+
+To mark a bomb with a flag use the enter key.
+
+To reveal a square, use the space bar. Pressing the reveal key on an already revealed square will reveal all surrounding unflagged squares (use with caution).
