@@ -196,6 +196,10 @@ func (board *Board) SetFlag(index int) {
 // / Returns whether the revealed square was a bomb.
 func (board *Board) RevealSquare(index int) bool {
 
+    if board.IsFlagged(index) {
+        return false
+    }
+
 	if board.IsBomb(index) {
         board.Revealed[index] = true
 		return true
