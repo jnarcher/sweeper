@@ -83,6 +83,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// actions
 		case " ":
+
+            if !m.board.IsGenerated {
+                m.board.Generate(m.cursor)
+            }
+
 			isBomb := m.board.RevealSquare(m.cursor)
 
 			if isBomb {
@@ -190,6 +195,10 @@ func (m *Model) MoveCursor(dir CursorMotion) {
 }
 
 func (m Model) CheckWin() bool {
+    if (!m.board.IsGenerated) {
+        return false
+    }
+
 	for _, bomb := range m.board.Bombs {
 		if !m.board.IsFlagged(bomb) {
 			return false
