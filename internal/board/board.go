@@ -265,7 +265,7 @@ func (board Board) RenderSquare(index int) string {
 	}
 
 	if board.IsFlagged(index) {
-		return "F"
+		return "▣"
 	}
 
 	return "▢"
