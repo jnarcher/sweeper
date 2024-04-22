@@ -47,3 +47,5 @@ To move the cursor around the grid you can use the following options for up, lef
 To mark a bomb with a flag use the enter key.
 
 To reveal a square, use the space bar. Pressing the reveal key on an already revealed square will reveal all surrounding unflagged squares (use with caution).
+
+Press `q` or `ctrl+q` to quit at any time.
