@@ -41,6 +41,9 @@ func NewBoard(config BoardConfig) Board {
 }
 
 func (board *Board) Generate(initialReveal int) {
+    if board.IsGenerated {
+        return
+    }
 
 	// randomly place bombs
 	bombOptions := make([]int, board.Width*board.Height)
