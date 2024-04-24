@@ -8,7 +8,7 @@ import (
 type Board struct {
 	Width       int
 	Height      int
-    BombCount   int
+	BombCount   int
 	Bombs       []int
 	Squares     []int
 	Revealed    []bool
@@ -29,31 +29,31 @@ func NewBoard(config BoardConfig) Board {
 	}
 
 	return Board{
-        Width: config.Width,
-        Height: config.Height,
-        BombCount: config.Bombs,
-        Bombs: []int{},
-        Squares: make([]int, config.Width*config.Height),
-        Revealed: make([]bool, config.Width*config.Height),
-        Flagged: []int{},
-        IsGenerated: false,
+		Width:       config.Width,
+		Height:      config.Height,
+		BombCount:   config.Bombs,
+		Bombs:       []int{},
+		Squares:     make([]int, config.Width*config.Height),
+		Revealed:    make([]bool, config.Width*config.Height),
+		Flagged:     []int{},
+		IsGenerated: false,
 	}
 }
 
 func (board *Board) Generate(initialReveal int) {
-    if board.IsGenerated {
-        return
-    }
+	if board.IsGenerated {
+		return
+	}
 
 	// randomly place bombs
 	bombOptions := make([]int, board.Width*board.Height)
 	for i := 0; i < len(bombOptions); i++ {
 		bombOptions[i] = i
 	}
-    // remove initial reveal square from bomb options
-    bombOptions = append(bombOptions[:initialReveal], bombOptions[initialReveal+1:]...)
+	// remove initial reveal square from bomb options
+	bombOptions = append(bombOptions[:initialReveal], bombOptions[initialReveal+1:]...)
 
-    for count := board.BombCount; count > 0; count-- {
+	for count := board.BombCount; count > 0; count-- {
 		optionIndex := rand.Intn(len(bombOptions))
 		newBomb := bombOptions[optionIndex]
 		bombOptions = append(bombOptions[:optionIndex], bombOptions[optionIndex+1:]...)
@@ -79,7 +79,7 @@ func (board *Board) Generate(initialReveal int) {
 		}
 	}
 
-    // fill square numbers
+	// fill square numbers
 	for i := 0; i < board.Width*board.Height; i++ {
 		neighborIdxs := board.GetSurroundingIndices(i)
 		surroundingBombCount := 0
@@ -94,7 +94,7 @@ func (board *Board) Generate(initialReveal int) {
 		board.Squares[i] = surroundingBombCount
 	}
 
-    board.IsGenerated = true
+	board.IsGenerated = true
 }
 
 // / Returns a string visualization of the board
@@ -216,7 +216,7 @@ func (board *Board) SetFlag(index int) {
 func (board *Board) RevealSquare(index int) bool {
 
 	if board.IsFlagged(index) {
-        return false
+		return false
 	}
 
 	if board.IsBomb(index) {
@@ -295,7 +295,6 @@ func (board Board) RenderSquare(index int) string {
 
 	return "▢"
 }
-
 
 func (board Board) GetSurroundingIndices(focus int) []int {
 	idxs := []int{}

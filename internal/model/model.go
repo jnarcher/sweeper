@@ -84,15 +84,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// actions
 		case " ":
 
-            if !m.board.IsGenerated {
-                m.board.Generate(m.cursor)
-            }
+			if !m.board.IsGenerated {
+				m.board.Generate(m.cursor)
+			}
 
 			isBomb := m.board.RevealSquare(m.cursor)
 
 			if isBomb {
 				m.SetState(Lost)
-                m.board.RevealAll()
+				m.board.RevealAll()
 				return m, nil
 			}
 
@@ -101,7 +101,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.board.ToggleFlag(m.cursor)
 			if m.CheckWin() {
 				m.SetState(Win)
-                m.board.RevealAll()
+				m.board.RevealAll()
 			}
 			return m, nil
 		}
@@ -123,16 +123,16 @@ func (m Model) View() string {
 				board += " "
 			}
 
-            style := lipgloss.NewStyle()
+			style := lipgloss.NewStyle()
 			if index == m.cursor {
 				style = theme.CursorText
 			} else if m.board.Revealed[index] {
 
-                if m.board.IsBomb(index) {
-                    style = theme.DefaultText.Foreground(lipgloss.Color("#FF00000"))
-                } else {
-                    style = theme.DefaultText.Foreground(m.colors[m.board.Squares[index]])
-                }
+				if m.board.IsBomb(index) {
+					style = theme.DefaultText.Foreground(lipgloss.Color("#FF00000"))
+				} else {
+					style = theme.DefaultText.Foreground(m.colors[m.board.Squares[index]])
+				}
 			}
 
 			board += style.Render(m.board.RenderSquare(index))
@@ -195,9 +195,9 @@ func (m *Model) MoveCursor(dir CursorMotion) {
 }
 
 func (m Model) CheckWin() bool {
-    if (!m.board.IsGenerated) {
-        return false
-    }
+	if !m.board.IsGenerated {
+		return false
+	}
 
 	for _, bomb := range m.board.Bombs {
 		if !m.board.IsFlagged(bomb) {
