@@ -166,6 +166,11 @@ func (board Board) IsBomb(index int) bool {
 }
 
 func (board *Board) ToggleFlag(index int) {
+    // Cannot flag already revealed squares
+    if board.Revealed[index] {
+        return;
+    }
+
 	if board.IsFlagged(index) {
 		for i := 0; i < len(board.Flagged); i++ {
 			if board.Flagged[i] == index {
