@@ -23,6 +23,6 @@ func (t *Timer) Begin() {
 }
 
 // / Returns the curernt time in ms
-func (t Timer) CurrentTime() int {
-	return int(time.Since(t.start).Milliseconds())
+func (t Timer) CurrentTime() int64 {
+	return time.Since(t.start).Milliseconds()
 }
