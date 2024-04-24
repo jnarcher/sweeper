@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/jnarcher/sweeper/internal/board"
 	"github.com/jnarcher/sweeper/internal/theme"
+	"github.com/jnarcher/sweeper/internal/timer"
 )
 
 type CursorMotion int
@@ -32,12 +33,14 @@ type Model struct {
 	board     board.Board
 	cursor    int
 	colors    [9]lipgloss.Color
-	State     GameState
+	state     GameState
+	timer     timer.Timer
 }
 
 func InitialModel(config board.BoardConfig) Model {
 	cursor := 0
 	board := board.NewBoard(config)
+	timer := timer.Timer{}
 	return Model{
 		100,
 		20,
@@ -45,6 +48,7 @@ func InitialModel(config board.BoardConfig) Model {
 		cursor,
 		theme.NumberColors,
 		Playing,
+		timer,
 	}
 }
 
@@ -61,22 +65,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			// cursor movement
 		case "w", "k", "up":
-			if m.State == Playing {
+			if m.state == Playing {
 				m.MoveCursor(CursorUp)
 			}
 			return m, nil
 		case "s", "j", "down":
-			if m.State == Playing {
+			if m.state == Playing {
 				m.MoveCursor(CursorDown)
 			}
 			return m, nil
 		case "a", "h", "left":
-			if m.State == Playing {
+			if m.state == Playing {
 				m.MoveCursor(CursorLeft)
 			}
 			return m, nil
 		case "d", "l", "right":
-			if m.State == Playing {
+			if m.state == Playing {
 				m.MoveCursor(CursorRight)
 			}
 			return m, nil
@@ -85,6 +89,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case " ":
 
 			if !m.board.IsGenerated {
+				m.timer.Begin()
 				m.board.Generate(m.cursor)
 			}
 
@@ -111,7 +116,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) View() string {
 	// draw header
-	header := fmt.Sprintf("%d/%d\n", len(m.board.Flagged), len(m.board.Bombs))
+	var winText string
+	if m.state == Win {
+		t := m.timer.CurrentTime()
+		winText = fmt.Sprintf("TIME: %d.%d seconds", t/1000, t%1000)
+	}
+	header := fmt.Sprintf("%d/%d   %s\n", len(m.board.Flagged), len(m.board.Bombs), winText)
 
 	// draw board
 	board := ""
@@ -148,14 +158,14 @@ func (m Model) View() string {
 
 	// draw win message
 	footer := "\n"
-	switch m.State {
+	switch m.state {
 	case Playing:
 		break
 	case Win:
-		footer += "YOU WIN    Press \"q\" or \"ctrl+q\" to quit"
+		footer += fmt.Sprintf("YOU WIN\nPress \"q\" or \"ctrl+q\" to quit")
 		break
 	case Lost:
-		footer += "YOU LOSE   Press \"q\" or \"ctrl+q\" to quit"
+		footer += "YOU LOSE\nPress \"q\" or \"ctrl+q\" to quit"
 		break
 	}
 
@@ -208,7 +218,7 @@ func (m Model) CheckWin() bool {
 }
 
 func (m *Model) SetState(state GameState) {
-	m.State = state
+	m.state = state
 	if state != Playing {
 		m.cursor = -1
 	} else {
