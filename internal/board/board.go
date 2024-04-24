@@ -80,19 +80,12 @@ func (board *Board) Generate(initialReveal int) {
 	}
 
 	// fill square numbers
-	for i := 0; i < board.Width*board.Height; i++ {
-		neighborIdxs := board.GetSurroundingIndices(i)
-		surroundingBombCount := 0
-		for j := 0; j < len(neighborIdxs); j++ {
-			for k := 0; k < len(board.Bombs); k++ {
-				if board.Bombs[k] == neighborIdxs[j] {
-					surroundingBombCount++
-					break
-				}
-			}
-		}
-		board.Squares[i] = surroundingBombCount
-	}
+    for _, bomb := range board.Bombs {
+        neighborIdxs := board.GetSurroundingIndices(bomb)
+        for _, neighbor := range neighborIdxs {
+            board.Squares[neighbor] += 1
+        }
+    } 
 
 	board.IsGenerated = true
 }
