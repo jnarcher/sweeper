@@ -9,10 +9,10 @@ type Board struct {
 	Width       int
 	Height      int
 	BombCount   int
-	Bombs       []int
-	Squares     []int
-	Revealed    []bool
-	Flagged     []int
+	bombs       []int
+	squares     []int
+	revealed    []bool
+	flagged     []int
 	IsGenerated bool
 }
 
@@ -32,10 +32,10 @@ func NewBoard(config BoardConfig) Board {
 		Width:       config.Width,
 		Height:      config.Height,
 		BombCount:   config.Bombs,
-		Bombs:       []int{},
-		Squares:     make([]int, config.Width*config.Height),
-		Revealed:    make([]bool, config.Width*config.Height),
-		Flagged:     []int{},
+		bombs:       []int{},
+		squares:     make([]int, config.Width*config.Height),
+		revealed:    make([]bool, config.Width*config.Height),
+		flagged:     []int{},
 		IsGenerated: false,
 	}
 }
@@ -59,31 +59,29 @@ func (board *Board) Generate(initialReveal int) {
 		bombOptions = append(bombOptions[:optionIndex], bombOptions[optionIndex+1:]...)
 		didInsert := false
 
-		for i := 0; i < len(board.Bombs); i++ {
-			if newBomb < board.Bombs[i] {
-
+        // insert new bomb in order
+        for i, bomb := range board.bombs {
+			if newBomb < bomb {
 				if i == 0 {
-					board.Bombs = append([]int{newBomb}, board.Bombs...)
+					board.bombs = append([]int{newBomb}, board.bombs...)
 				} else {
-					board.Bombs = append(board.Bombs[:i+1], board.Bombs[i:]...)
-					board.Bombs[i] = newBomb
+					board.bombs = append(board.bombs[:i+1], board.bombs[i:]...)
+					board.bombs[i] = newBomb
 				}
-
 				didInsert = true
 				break
 			}
-		}
-
+        }
 		if !didInsert {
-			board.Bombs = append(board.Bombs, newBomb)
+			board.bombs = append(board.bombs, newBomb)
 		}
 	}
 
 	// fill square numbers
-    for _, bomb := range board.Bombs {
+    for _, bomb := range board.bombs {
         neighborIdxs := board.GetSurroundingIndices(bomb)
         for _, neighbor := range neighborIdxs {
-            board.Squares[neighbor] += 1
+            board.squares[neighbor] += 1
         }
     } 
 
@@ -111,11 +109,11 @@ func (board Board) toString(showUnrevealed bool) string {
 			}
 
 			charToAdd := ""
-			if board.Revealed[index] || showUnrevealed {
+			if board.revealed[index] || showUnrevealed {
 				if board.IsBomb(index) {
 					charToAdd = "X"
 				} else {
-					charToAdd = fmt.Sprint(board.Squares[index])
+					charToAdd = fmt.Sprint(board.squares[index])
 				}
 			} else if board.IsFlagged(index) {
 				charToAdd = "F"
@@ -149,9 +147,13 @@ func (board Board) ToStringPositions() string {
 	return s
 }
 
+func (board Board) Square(i int) int {
+    return board.squares[i]
+}
+
 func (board Board) IsBomb(index int) bool {
-	for i := 0; i < len(board.Bombs); i++ {
-		if board.Bombs[i] == index {
+	for i := 0; i < len(board.bombs); i++ {
+		if board.bombs[i] == index {
 			return true
 		}
 	}
@@ -160,14 +162,14 @@ func (board Board) IsBomb(index int) bool {
 
 func (board *Board) ToggleFlag(index int) {
     // Cannot flag already revealed squares
-    if board.Revealed[index] {
+    if board.revealed[index] {
         return;
     }
 
 	if board.IsFlagged(index) {
-		for i := 0; i < len(board.Flagged); i++ {
-			if board.Flagged[i] == index {
-				board.Flagged = append(board.Flagged[:i], board.Flagged[i+1:]...)
+		for i := 0; i < len(board.flagged); i++ {
+			if board.flagged[i] == index {
+				board.flagged = append(board.flagged[:i], board.flagged[i+1:]...)
 				break
 			}
 		}
@@ -177,8 +179,8 @@ func (board *Board) ToggleFlag(index int) {
 }
 
 func (board Board) IsFlagged(index int) bool {
-	for i := 0; i < len(board.Flagged); i++ {
-		if board.Flagged[i] == index {
+	for i := 0; i < len(board.flagged); i++ {
+		if board.flagged[i] == index {
 			return true
 		}
 	}
@@ -188,14 +190,14 @@ func (board Board) IsFlagged(index int) bool {
 func (board *Board) SetFlag(index int) {
 	if !board.IsFlagged(index) {
 		didInsert := false
-		for i := 0; i < len(board.Flagged); i++ {
-			if index < board.Flagged[i] {
+		for i := 0; i < len(board.flagged); i++ {
+			if index < board.flagged[i] {
 
 				if i == 0 {
-					board.Flagged = append([]int{index}, board.Flagged...)
+					board.flagged = append([]int{index}, board.flagged...)
 				} else {
-					board.Flagged = append(board.Flagged[:i+1], board.Flagged[i:]...)
-					board.Flagged[i] = index
+					board.flagged = append(board.flagged[:i+1], board.flagged[i:]...)
+					board.flagged[i] = index
 				}
 
 				didInsert = true
@@ -204,7 +206,7 @@ func (board *Board) SetFlag(index int) {
 		}
 
 		if !didInsert {
-			board.Flagged = append(board.Flagged, index)
+			board.flagged = append(board.flagged, index)
 		}
 	}
 }
@@ -218,12 +220,12 @@ func (board *Board) RevealSquare(index int) bool {
 	}
 
 	if board.IsBomb(index) {
-		board.Revealed[index] = true
+		board.revealed[index] = true
 		return true
 	}
 
 	// If selected an already revealed square reveal all non flagged surrounding squares
-	if board.Revealed[index] && board.Squares[index] > 0 {
+	if board.revealed[index] && board.squares[index] > 0 {
 		neighbors := board.getUnrevealedNeighbors(index)
 		for _, neighbor := range neighbors {
 			if !board.IsFlagged(neighbor) {
@@ -241,12 +243,12 @@ func (board *Board) RevealSquare(index int) bool {
 }
 
 func recursiveReveal(board *Board, focus int) {
-	board.Revealed[focus] = true
+	board.revealed[focus] = true
 
 	// Stop if square has a neighboring bomb or is flagged.
 	// Should only hit the is flagged condition if incorrectly
 	// flagged.
-	if board.Squares[focus] != 0 || board.IsFlagged(focus) {
+	if board.squares[focus] != 0 || board.IsFlagged(focus) {
 		return
 	}
 
@@ -260,7 +262,7 @@ func (board Board) getUnrevealedNeighbors(focus int) []int {
 	unrevealedNeighbors := []int{}
 	neighbors := board.GetSurroundingIndices(focus)
 	for i := 0; i < len(neighbors); i++ {
-		if !board.Revealed[neighbors[i]] && !board.IsFlagged(neighbors[i]) {
+		if !board.revealed[neighbors[i]] && !board.IsFlagged(neighbors[i]) {
 			unrevealedNeighbors = append(unrevealedNeighbors, neighbors[i])
 		}
 	}
@@ -268,23 +270,23 @@ func (board Board) getUnrevealedNeighbors(focus int) []int {
 }
 
 func (board *Board) RevealAll() {
-	for i := range board.Revealed {
-		board.Revealed[i] = true
+	for i := range board.revealed {
+		board.revealed[i] = true
 	}
 }
 
 func (board *Board) HideSquare(index int) {
-	board.Revealed[index] = false
+	board.revealed[index] = false
 }
 
 func (board Board) RenderSquare(index int) string {
-	if board.Revealed[index] {
+	if board.revealed[index] {
 		if board.IsBomb(index) {
 			return "✖"
-		} else if board.Squares[index] == 0 {
+		} else if board.squares[index] == 0 {
 			return " "
 		}
-		return fmt.Sprint(board.Squares[index])
+		return fmt.Sprint(board.squares[index])
 	}
 
 	if board.IsFlagged(index) {
@@ -331,4 +333,25 @@ func (board Board) GetSurroundingIndices(focus int) []int {
 	}
 
 	return idxs
+}
+
+func (b Board) CheckWin() bool {
+	if !b.IsGenerated {
+		return false
+	}
+
+	for _, bomb := range b.bombs {
+		if !b.IsFlagged(bomb) {
+			return false
+		}
+	}
+	return true
+}
+
+func (b Board) IsRevealed(index int) bool {
+    return b.revealed[index]
+}
+
+func (b Board) NumberOfCurrentFlags() int {
+    return len(b.flagged)
 }

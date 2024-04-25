@@ -104,7 +104,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		case "enter":
 			m.board.ToggleFlag(m.cursor)
-			if m.CheckWin() {
+			if m.board.CheckWin() {
 				m.SetState(Win)
 				m.board.RevealAll()
 			}
@@ -121,7 +121,7 @@ func (m Model) View() string {
 		t := m.timer.CurrentTime()
 		winText = fmt.Sprintf("TIME: %d.%d seconds", t/1000, t%1000)
 	}
-	header := fmt.Sprintf("%d/%d   %s\n", len(m.board.Flagged), len(m.board.Bombs), winText)
+	header := fmt.Sprintf("%d/%d   %s\n", m.board.NumberOfCurrentFlags(), m.board.BombCount, winText)
 
 	// draw board
 	board := ""
@@ -136,12 +136,12 @@ func (m Model) View() string {
 			style := lipgloss.NewStyle()
 			if index == m.cursor {
 				style = theme.CursorText
-			} else if m.board.Revealed[index] {
+            } else if m.board.IsRevealed(index) {
 
 				if m.board.IsBomb(index) {
 					style = theme.DefaultText.Foreground(lipgloss.Color("#FF00000"))
 				} else {
-					style = theme.DefaultText.Foreground(m.colors[m.board.Squares[index]])
+					style = theme.DefaultText.Foreground(m.colors[m.board.Square(index)])
 				}
 			}
 
@@ -204,18 +204,6 @@ func (m *Model) MoveCursor(dir CursorMotion) {
 	}
 }
 
-func (m Model) CheckWin() bool {
-	if !m.board.IsGenerated {
-		return false
-	}
-
-	for _, bomb := range m.board.Bombs {
-		if !m.board.IsFlagged(bomb) {
-			return false
-		}
-	}
-	return true
-}
 
 func (m *Model) SetState(state GameState) {
 	m.state = state
