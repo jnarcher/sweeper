@@ -14,6 +14,7 @@ type Board struct {
 	revealed    []bool
 	flagged     []int
 	IsGenerated bool
+	Config      *BoardConfig
 }
 
 type BoardConfig struct {
@@ -21,6 +22,7 @@ type BoardConfig struct {
 	Height        int
 	Bombs         int
 	InitialSquare int
+	ModernMode    bool
 }
 
 func NewBoard(config BoardConfig) Board {
@@ -37,6 +39,7 @@ func NewBoard(config BoardConfig) Board {
 		revealed:    make([]bool, config.Width*config.Height),
 		flagged:     []int{},
 		IsGenerated: false,
+		Config:      &config,
 	}
 }
 
@@ -53,14 +56,26 @@ func (board *Board) Generate(initialReveal int) {
 	// remove initial reveal square from bomb options
 	bombOptions = append(bombOptions[:initialReveal], bombOptions[initialReveal+1:]...)
 
+	// remove all cells around initial reveal cell if modern mode activated
+	if board.Config.ModernMode {
+		initialNeighbors := board.GetSurroundingIndices(initialReveal)
+		for _, indx := range initialNeighbors {
+			for i, bombOption := range bombOptions {
+				if bombOption == indx {
+					bombOptions = append(bombOptions[:i], bombOptions[i+1:]...)
+				}
+			}
+		}
+	}
+
 	for count := board.BombCount; count > 0; count-- {
 		optionIndex := rand.Intn(len(bombOptions))
 		newBomb := bombOptions[optionIndex]
 		bombOptions = append(bombOptions[:optionIndex], bombOptions[optionIndex+1:]...)
 		didInsert := false
 
-        // insert new bomb in order
-        for i, bomb := range board.bombs {
+		// insert new bomb in order
+		for i, bomb := range board.bombs {
 			if newBomb < bomb {
 				if i == 0 {
 					board.bombs = append([]int{newBomb}, board.bombs...)
@@ -71,19 +86,19 @@ func (board *Board) Generate(initialReveal int) {
 				didInsert = true
 				break
 			}
-        }
+		}
 		if !didInsert {
 			board.bombs = append(board.bombs, newBomb)
 		}
 	}
 
 	// fill square numbers
-    for _, bomb := range board.bombs {
-        neighborIdxs := board.GetSurroundingIndices(bomb)
-        for _, neighbor := range neighborIdxs {
-            board.squares[neighbor] += 1
-        }
-    } 
+	for _, bomb := range board.bombs {
+		neighborIdxs := board.GetSurroundingIndices(bomb)
+		for _, neighbor := range neighborIdxs {
+			board.squares[neighbor] += 1
+		}
+	}
 
 	board.IsGenerated = true
 }
@@ -148,7 +163,7 @@ func (board Board) ToStringPositions() string {
 }
 
 func (board Board) Square(i int) int {
-    return board.squares[i]
+	return board.squares[i]
 }
 
 func (board Board) IsBomb(index int) bool {
@@ -161,10 +176,10 @@ func (board Board) IsBomb(index int) bool {
 }
 
 func (board *Board) ToggleFlag(index int) {
-    // Cannot flag already revealed squares
-    if board.revealed[index] {
-        return;
-    }
+	// Cannot flag already revealed squares
+	if board.revealed[index] {
+		return
+	}
 
 	if board.IsFlagged(index) {
 		for i := 0; i < len(board.flagged); i++ {
@@ -349,9 +364,9 @@ func (b Board) CheckWin() bool {
 }
 
 func (b Board) IsRevealed(index int) bool {
-    return b.revealed[index]
+	return b.revealed[index]
 }
 
 func (b Board) NumberOfCurrentFlags() int {
-    return len(b.flagged)
+	return len(b.flagged)
 }

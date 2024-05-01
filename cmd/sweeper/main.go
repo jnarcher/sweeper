@@ -14,6 +14,7 @@ func main() {
 	width := flag.Int("w", 10, "width in columns of the board")
 	height := flag.Int("h", 10, "height in rows of the board")
 	bombs := flag.Int("b", -1, "number of bombs")
+	modern := flag.Bool("m", false, "start with clear square (modern mode)")
 	flag.Parse()
 
 	if *bombs == -1 {
@@ -21,9 +22,10 @@ func main() {
 	}
 
 	config := board.BoardConfig{
-		Width:  *width,
-		Height: *height,
-		Bombs:  *bombs,
+		Width:      *width,
+		Height:     *height,
+		Bombs:      *bombs,
+		ModernMode: *modern,
 	}
 
 	p := tea.NewProgram(model.InitialModel(config), tea.WithAltScreen())
