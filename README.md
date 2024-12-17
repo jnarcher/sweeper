@@ -49,3 +49,7 @@ To mark a bomb with a flag use the enter key.
 To reveal a square, use the space bar. Pressing the reveal key on an already revealed square will reveal all surrounding unflagged squares (use with caution).
 
 Press `q` or `ctrl+q` to quit at any time.
+
+## Attributions
+
+Sweeper was built using the [Bubble Tea TUI framework](https://github.com/charmbracelet/bubbletea), which provided the tools to create an intuitive and responsive terminal interface. Special thanks to the Charm team for their excellent framework.
